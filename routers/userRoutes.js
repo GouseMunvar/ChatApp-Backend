@@ -9,4 +9,5 @@ UserRouter.post('/login', login);
 UserRouter.put('/profile', protectRoute, updateProfile);
 UserRouter.get('/check', protectRoute, checkAuth);
 
+
 export default UserRouter;

@@ -95,40 +95,46 @@ export const login = async (req, res) => {
 
 
 export const updateProfile = async (req, res) => {
-   try{
-     const { fullName, bio, profilePic } = req.body;
-        const userId = req.user._id;
-        let updateUser;
-        if(!profilePic){
-            updateUser = await User.findByIdAndUpdate(userId, { fullName, bio }, { new: true });
-        }
-        else{
-            // Assuming cloudinary is imported and configured
-            const upload = await cloudinary.uploader.upload(profilePic, {
-                folder: "profile_pics"
-            });
-            updateUser = await User.findByIdAndUpdate(
-                userId,
-                { fullName, bio, profilePic: upload.secure_url },
-                { new: true }
-            );
-        }
-        res.status(200).json({
-            message: "Profile updated successfully",
-            user: {
-                id: updateUser._id,
-                email: updateUser.email,
-                fullName: updateUser.fullName,
-                bio: updateUser.bio,
-                profilePic: updateUser.profilePic
-            }
-        });
-    } catch(error){
-        console.error("Error updating profile:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-};
+  try {
+    const { fullName, bio } = req.body;
+    const userId = req.user._id;
 
+    let updateData = {
+      fullName,
+      bio,
+    };
+
+    // If file uploaded
+    if (req.file) {
+      const upload = await cloudinary.uploader.upload(req.file.path, {
+        folder: "profile_pics",
+      });
+
+      updateData.profilePic = upload.secure_url;
+    }
+
+    const updateUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        id: updateUser._id,
+        email: updateUser.email,
+        fullName: updateUser.fullName,
+        bio: updateUser.bio,
+        profilePic: updateUser.profilePic,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 
 
